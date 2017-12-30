@@ -18,7 +18,7 @@ Description: JUCE source code for a feedback digital delay VST plugin. My delay 
 
 6. Save and open the file in your selected exporter.
 
-7. Using your computer browser, navigate to your JUCE project folder. Remove all the files located in the “Source” folder. Now add the files from this GitHub repository.
+7. Using your computer’s file manager, navigate to your JUCE project folder. Remove all the files located in the “Source” folder. Now add the files from this GitHub repository.
 
 8. Compile the new source code using the exporter.
 
