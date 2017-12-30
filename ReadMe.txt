@@ -3,7 +3,7 @@ Feedback Delay Source Code
 Authors: Chad McKell + Roli, Ltd.
 Date: 29 Dec 2017
 
-Description: Source code for a feedback digital delay VST plugin. My delay algorithm is located on line 192 in the file "PluginProcessor.cpp". Minor modifications were made to the parameter names. All other code is written and owned by Roli, Ltd. Below are instructions for compiling the source code and running the VST plugin.
+Description: JUCE source code for a feedback digital delay VST plugin. My delay algorithm is located on line 192 in the file "PluginProcessor.cpp". Minor modifications were made to the parameter names. All other code is written and owned by Roli, Ltd. Below are instructions for compiling the source code and running the VST plugin.
 
 
 1. Open Projucer v5.2.0 or later (see juce.com/projucer).
