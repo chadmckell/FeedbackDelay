@@ -32,7 +32,7 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter();
 
 
 //==============================================================================
-FeedForwardDelayAudioProcessor::FeedForwardDelayAudioProcessor()
+FeedbackDelayAudioProcessor::FeedbackDelayAudioProcessor()
     : AudioProcessor (getBusesProperties())
 {
     lastPosInfo.resetToDefault();
@@ -40,17 +40,17 @@ FeedForwardDelayAudioProcessor::FeedForwardDelayAudioProcessor()
     // This creates our parameters. We'll keep some raw pointers to them in this class,
     // so that we can easily access them later, but the base class will take care of
     // deleting them for us.
-    addParameter (gainParam  = new AudioParameterFloat ("gain",  "Gain",           0.0f, 1.0f, 0.9f));
-    addParameter (delayParam = new AudioParameterFloat ("delay", "Delay Feedback", 0.0f, 1.0f, 0.5f));
+    addParameter (gainParam  = new AudioParameterFloat ("gain",  "Overall Gain", 0.0f, 1.0f, 0.9f));
+    addParameter (delayParam = new AudioParameterFloat ("delay", "Delay Gain", 0.0f, 1.0f, 0.5f));
     
     initialiseSynth();
 }
 
-FeedForwardDelayAudioProcessor::~FeedForwardDelayAudioProcessor()
+FeedbackDelayAudioProcessor::~FeedbackDelayAudioProcessor()
 {
 }
 
-void FeedForwardDelayAudioProcessor::initialiseSynth()
+void FeedbackDelayAudioProcessor::initialiseSynth()
 {
     const int numVoices = 8;
     
@@ -63,7 +63,7 @@ void FeedForwardDelayAudioProcessor::initialiseSynth()
 }
 
 //==============================================================================
-bool FeedForwardDelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool FeedbackDelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
     // Only mono/stereo and input/output must have same layout
     const AudioChannelSet& mainOutput = layouts.getMainOutputChannelSet();
@@ -84,14 +84,14 @@ bool FeedForwardDelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& 
     return true;
 }
 
-AudioProcessor::BusesProperties FeedForwardDelayAudioProcessor::getBusesProperties()
+AudioProcessor::BusesProperties FeedbackDelayAudioProcessor::getBusesProperties()
 {
     return BusesProperties().withInput  ("Input",  AudioChannelSet::stereo(), true)
     .withOutput ("Output", AudioChannelSet::stereo(), true);
 }
 
 //==============================================================================
-void FeedForwardDelayAudioProcessor::prepareToPlay (double newSampleRate, int /*samplesPerBlock*/)
+void FeedbackDelayAudioProcessor::prepareToPlay (double newSampleRate, int /*samplesPerBlock*/)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
@@ -112,14 +112,14 @@ void FeedForwardDelayAudioProcessor::prepareToPlay (double newSampleRate, int /*
     reset();
 }
 
-void FeedForwardDelayAudioProcessor::releaseResources()
+void FeedbackDelayAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
     keyboardState.reset();
 }
 
-void FeedForwardDelayAudioProcessor::reset()
+void FeedbackDelayAudioProcessor::reset()
 {
     // Use this method as the place to clear any delay lines, buffers, etc, as it
     // means there's been a break in the audio's continuity.
@@ -128,7 +128,7 @@ void FeedForwardDelayAudioProcessor::reset()
 }
 
 template <typename FloatType>
-void FeedForwardDelayAudioProcessor::process (AudioBuffer<FloatType>& buffer,
+void FeedbackDelayAudioProcessor::process (AudioBuffer<FloatType>& buffer,
                                             MidiBuffer& midiMessages,
                                             AudioBuffer<FloatType>& delayBuffer)
 {
@@ -158,7 +158,7 @@ void FeedForwardDelayAudioProcessor::process (AudioBuffer<FloatType>& buffer,
 }
 
 template <typename FloatType>
-void FeedForwardDelayAudioProcessor::applyGain (AudioBuffer<FloatType>& buffer, AudioBuffer<FloatType>& delayBuffer)
+void FeedbackDelayAudioProcessor::applyGain (AudioBuffer<FloatType>& buffer, AudioBuffer<FloatType>& delayBuffer)
 {
     ignoreUnused (delayBuffer);
     const float gainLevel = *gainParam;
@@ -168,7 +168,7 @@ void FeedForwardDelayAudioProcessor::applyGain (AudioBuffer<FloatType>& buffer, 
 }
 
 template <typename FloatType>
-void FeedForwardDelayAudioProcessor::applyDelay (AudioBuffer<FloatType>& buffer, AudioBuffer<FloatType>& delayBuffer)
+void FeedbackDelayAudioProcessor::applyDelay (AudioBuffer<FloatType>& buffer, AudioBuffer<FloatType>& delayBuffer)
 {
     const int numSamples = buffer.getNumSamples();
     const float delayLevel = *delayParam;
@@ -183,13 +183,16 @@ void FeedForwardDelayAudioProcessor::applyDelay (AudioBuffer<FloatType>& buffer,
         
         for (int i = 0; i < numSamples; ++i)
         {
-            auto in = channelData[i];
+            //auto in = channelData[i];
             
-            // this adds zero to the incoming data stream during the first delay cycle, but it adds the quantity "in * delayLevel" during the second cycle (for feedforward algo). Note that the quantity "in * delayLevel" was calculated during the first cycle!
+            // this adds zero to the incoming data stream during the first delay cycle.
             channelData[i] += delayData[delayPos];
             
-            // Feedback algo #1: In the first cycle, the quantity "channelData[i]" is the pure incoming data stream. In all cycles following the first cycle, channelData[i] includes any remaining pure incoming data stream PLUS the delayed data stream from the previous cycle because that delayed data cycle was added to channelData[i] in the line "channelData[i] += delayData[delayPos]" shown above! For this algo, the quantity "in" is not used and can be omitted.
+            // Feedback algo #1: This is my version. In the first cycle, the quantity "channelData[i]" is the pure incoming data stream. In all cycles following the first cycle, channelData[i] includes any remaining pure incoming data stream PLUS the delayed data stream from the previous cycle because that delayed data cycle was added to channelData[i] in the line "channelData[i] += delayData[delayPos]" shown above! For this algo, the quantity "in" is not used and can be omitted.
             delayData[delayPos] = channelData[i] * delayLevel;
+            
+            // Feedback algo #2: This is the algo that was devised by Roli Ltd. In the first cycle, the quantity "in" is the pure incoming data stream, and the quantity "delayData[delayPos]" is zero. In all subsequent cycles, the quantity "in" is equal to any remaining pure incoming data stream, and "delayData[delayPos]" is equal to the delayed data stream. Therefore, Feedback algo #2 is the same as Feedback algo #1.
+            //delayData[delayPos] = (delayData[delayPos] + in) * delayLevel;
             
             // The quantity "delayPos" is reset once it exceeds the number of samples in the delay cycle. Note that the length of the delay cycle is set by "delayBufferFloat.setSize" (see the "prepareToPlay" function above).
             if (++delayPos >= delayBuffer.getNumSamples())
@@ -202,7 +205,7 @@ void FeedForwardDelayAudioProcessor::applyDelay (AudioBuffer<FloatType>& buffer,
     delayPosition = delayPos;
 }
 
-void FeedForwardDelayAudioProcessor::updateCurrentTimeInfoFromHost()
+void FeedbackDelayAudioProcessor::updateCurrentTimeInfoFromHost()
 {
     if (AudioPlayHead* ph = getPlayHead())
     {
@@ -220,13 +223,13 @@ void FeedForwardDelayAudioProcessor::updateCurrentTimeInfoFromHost()
 }
 
 //==============================================================================
-AudioProcessorEditor* FeedForwardDelayAudioProcessor::createEditor()
+AudioProcessorEditor* FeedbackDelayAudioProcessor::createEditor()
 {
-    return new FeedForwardDelayAudioProcessorEditor (*this);
+    return new FeedbackDelayAudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void FeedForwardDelayAudioProcessor::getStateInformation (MemoryBlock& destData)
+void FeedbackDelayAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // Here's an example of how you can use XML to make it easy and more robust:
@@ -247,7 +250,7 @@ void FeedForwardDelayAudioProcessor::getStateInformation (MemoryBlock& destData)
     copyXmlToBinary (xml, destData);
 }
 
-void FeedForwardDelayAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void FeedbackDelayAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
@@ -272,11 +275,11 @@ void FeedForwardDelayAudioProcessor::setStateInformation (const void* data, int 
     }
 }
 
-void FeedForwardDelayAudioProcessor::updateTrackProperties (const TrackProperties& properties)
+void FeedbackDelayAudioProcessor::updateTrackProperties (const TrackProperties& properties)
 {
     trackProperties = properties;
     
-    if (auto* editor = dynamic_cast<FeedForwardDelayAudioProcessorEditor*> (getActiveEditor()))
+    if (auto* editor = dynamic_cast<FeedbackDelayAudioProcessorEditor*> (getActiveEditor()))
         editor->updateTrackProperties ();
 }
 
@@ -284,6 +287,6 @@ void FeedForwardDelayAudioProcessor::updateTrackProperties (const TrackPropertie
 // This creates new instances of the plugin..
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new FeedForwardDelayAudioProcessor();
+    return new FeedbackDelayAudioProcessor();
 }
 

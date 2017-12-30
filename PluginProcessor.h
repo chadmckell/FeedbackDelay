@@ -33,12 +33,12 @@
 /**
  As the name suggest, this class does the actual audio processing.
  */
-class FeedForwardDelayAudioProcessor  : public AudioProcessor
+class FeedbackDelayAudioProcessor  : public AudioProcessor
 {
 public:
     //==============================================================================
-    FeedForwardDelayAudioProcessor();
-    ~FeedForwardDelayAudioProcessor();
+    FeedbackDelayAudioProcessor();
+    ~FeedbackDelayAudioProcessor();
     
     //==============================================================================
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
@@ -130,6 +130,6 @@ private:
     void updateCurrentTimeInfoFromHost();
     static BusesProperties getBusesProperties();
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FeedForwardDelayAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FeedbackDelayAudioProcessor)
 };
 

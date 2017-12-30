@@ -33,12 +33,12 @@
 //==============================================================================
 /** This is the editor component that our filter will display.
  */
-class FeedForwardDelayAudioProcessorEditor  : public AudioProcessorEditor,
+class FeedbackDelayAudioProcessorEditor  : public AudioProcessorEditor,
                                               private Timer
 {
 public:
-    FeedForwardDelayAudioProcessorEditor (FeedForwardDelayAudioProcessor&);
-    ~FeedForwardDelayAudioProcessorEditor();
+    FeedbackDelayAudioProcessorEditor (FeedbackDelayAudioProcessor&);
+    ~FeedbackDelayAudioProcessorEditor();
     
     //==============================================================================
     void paint (Graphics&) override;
@@ -56,9 +56,9 @@ private:
     Colour backgroundColour;
     
     //==============================================================================
-    FeedForwardDelayAudioProcessor& getProcessor() const
+    FeedbackDelayAudioProcessor& getProcessor() const
     {
-        return static_cast<FeedForwardDelayAudioProcessor&> (processor);
+        return static_cast<FeedbackDelayAudioProcessor&> (processor);
     }
     
     void updateTimecodeDisplay (AudioPlayHead::CurrentPositionInfo);

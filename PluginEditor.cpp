@@ -30,7 +30,7 @@
 //==============================================================================
 // This is a handy slider subclass that controls an AudioProcessorParameter
 // (may move this class into the library itself at some point in the future..)
-class FeedForwardDelayAudioProcessorEditor::ParameterSlider   : public Slider,
+class FeedbackDelayAudioProcessorEditor::ParameterSlider   : public Slider,
                                                                 private Timer
 {
 public:
@@ -66,7 +66,7 @@ public:
 };
 
 //==============================================================================
-FeedForwardDelayAudioProcessorEditor::FeedForwardDelayAudioProcessorEditor (FeedForwardDelayAudioProcessor& owner)
+FeedbackDelayAudioProcessorEditor::FeedbackDelayAudioProcessorEditor (FeedbackDelayAudioProcessor& owner)
     : AudioProcessorEditor (owner),
       midiKeyboard (owner.keyboardState, MidiKeyboardComponent::horizontalKeyboard),
       timecodeDisplayLabel (String()),
@@ -107,18 +107,18 @@ FeedForwardDelayAudioProcessorEditor::FeedForwardDelayAudioProcessorEditor (Feed
     startTimerHz (30);
 }
 
-FeedForwardDelayAudioProcessorEditor::~FeedForwardDelayAudioProcessorEditor()
+FeedbackDelayAudioProcessorEditor::~FeedbackDelayAudioProcessorEditor()
 {
 }
 
 //==============================================================================
-void FeedForwardDelayAudioProcessorEditor::paint (Graphics& g)
+void FeedbackDelayAudioProcessorEditor::paint (Graphics& g)
 {
     g.setColour (backgroundColour);
     g.fillAll();
 }
 
-void FeedForwardDelayAudioProcessorEditor::resized()
+void FeedbackDelayAudioProcessorEditor::resized()
 {
     // This lays out our child components...
     
@@ -137,17 +137,17 @@ void FeedForwardDelayAudioProcessorEditor::resized()
 }
 
 //==============================================================================
-void FeedForwardDelayAudioProcessorEditor::timerCallback()
+void FeedbackDelayAudioProcessorEditor::timerCallback()
 {
     updateTimecodeDisplay (getProcessor().lastPosInfo);
 }
 
-void FeedForwardDelayAudioProcessorEditor::hostMIDIControllerIsAvailable (bool controllerIsAvailable)
+void FeedbackDelayAudioProcessorEditor::hostMIDIControllerIsAvailable (bool controllerIsAvailable)
 {
     midiKeyboard.setVisible (! controllerIsAvailable);
 }
 
-void FeedForwardDelayAudioProcessorEditor::updateTrackProperties ()
+void FeedbackDelayAudioProcessorEditor::updateTrackProperties ()
 {
     auto trackColour = getProcessor().trackProperties.colour;
     auto& lf = getLookAndFeel();
@@ -188,7 +188,7 @@ static String quarterNotePositionToBarsBeatsString (double quarterNotes, int num
 }
 
 // Updates the text in our position label.
-void FeedForwardDelayAudioProcessorEditor::updateTimecodeDisplay (AudioPlayHead::CurrentPositionInfo pos)
+void FeedbackDelayAudioProcessorEditor::updateTimecodeDisplay (AudioPlayHead::CurrentPositionInfo pos)
 {
     MemoryOutputStream displayText;
     
