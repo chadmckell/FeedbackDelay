@@ -185,7 +185,7 @@ void FeedbackDelayAudioProcessor::applyDelay (AudioBuffer<FloatType>& buffer, Au
         {
             //auto in = channelData[i];
             
-            // this adds zero to the incoming data stream during the first delay cycle.
+            // This adds zero to the incoming data stream during the first delay cycle. 
             channelData[i] += delayData[delayPos];
             
             // Feedback algo #1: This is my version. In the first cycle, the quantity "channelData[i]" is the pure incoming data stream. In all cycles following the first cycle, channelData[i] includes any remaining pure incoming data stream PLUS the delayed data stream from the previous cycle because that delayed data cycle was added to channelData[i] in the line "channelData[i] += delayData[delayPos]" shown above! For this algo, the quantity "in" is not used and can be omitted.
